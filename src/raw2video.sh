@@ -39,4 +39,5 @@ ffmpeg -f rawvideo -pix_fmt rgb24 -s 1920x1080 -i "$RAW_INPUT" -i "$AUDIO_OUTPUT
 echo "Done."
 sleep 1
 echo "Removing old files..."
-rm -vf $2 
+sleep 1
+rm -vf "$2.flac"
