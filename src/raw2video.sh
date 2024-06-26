@@ -54,17 +54,18 @@ if [ -e "$AUDIO_OUTPUT" ] && [ -e "$FINAL_OUTPUT" ]; then
 fi
 
 # Convert the file to video and audio
-
+echo -e "$PREFIX Starting raw2video at" $(date '+%I:%M:%S %p')
 echo -e "$PREFIX Creating audio stream..."
 ffmpeg -v quiet -stats -f u8 -ar 44100 -i "$RAW_INPUT" -c:a flac "$AUDIO_OUTPUT"
-echo -e "$PREFIX Done."
+#echo -e "$PREFIX Done."
 echo -e "$PREFIX Creating video stream and including audio..."
 ffmpeg -v quiet -stats -f rawvideo -pix_fmt rgb24 -s 32x32 -i "$RAW_INPUT" -i "$AUDIO_OUTPUT" -c:v libx264 -c:a aac -b:a 192k "$FINAL_OUTPUT"
-echo -e "$PREFIX Done."
+#echo -e "$PREFIX Done."
 echo -e "$PREFIX Upscaling to 640x480..."
 ffmpeg -v quiet -stats -i "$FINAL_OUTPUT" -s 640x480 "$UPSCALED"
-echo -e "$PREFIX Done."
+#echo -e "$PREFIX Done."
 echo -e "$PREFIX Removing old files..."
 rm -vf "$AUDIO_OUTPUT" "$FINAL_OUTPUT" >/dev/null 2>&1
 mv "$UPSCALED" "$FINAL_OUTPUT" >/dev/null 2>&1
 echo -e "$PREFIX Done."
+echo -e "$PREFIX Finished at" $(date '+%I:%M:%S %p')
