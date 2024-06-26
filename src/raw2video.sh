@@ -1,19 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# raw2video Copyright (C) 2024 kernaltrap8
+# This program comes with ABSOLUTELY NO WARRANTY
+# This is free software, and you are welcome to redistribute it
+# under certain conditions
+
+VERSION="1.2"
+
+# Argument checking
+
+if [ "$1" == "-v" ] || [ "$1" == "--version" ]; then
+	echo "raw2video v$VERSION"
+	exit 0
+fi
 
 if [ "$#" -eq 0 ]; then
   echo -e "No arguments supplied.\nPlease supply the input and output name."
   exit 1
 fi
 
-# Check if the correct number of arguments is provided
 if [ "$#" -ne 3 ]; then
   echo -e "Incorrect number of arguments.\nUsage: $0 <raw_input> <audio_output> <final_output>"
   exit 1
 fi
 
+# Variable setup
+
 RAW_INPUT="$1"
 AUDIO_OUTPUT="$2"
 FINAL_OUTPUT="$3"
+UPSCALED="_upscaled_$FINAL_OUTPUT.mp4"
+PREFIX="\033[37m[\033[0m\033[35m * \033[0m\033[37m]\033[0m"
+
+# If input doesnt end in .flac or .mp4, append it to the FFMpeg input
 
 if [[ $AUDIO_OUTPUT != *.flac ]]; then
 	AUDIO_OUTPUT="$2.flac"
@@ -23,21 +42,27 @@ if [[ $FINAL_OUTPUT != *.mp4  ]]; then
 	FINAL_OUTPUT="$3.mp4"
 fi
 
+# Check the size of the input, 1MB or higher is best for better results
+
 if [ $(du -b $RAW_INPUT | cut -f1) -lt 1000000  ]; then
-	echo "Input file is too small."
+	echo -e "Input file is too small."
 	exit 1
 fi
 
-echo "Creating audio stream..."
-sleep 1
-ffmpeg -f u8 -ar 44100 -i "$RAW_INPUT" -c:a flac "$AUDIO_OUTPUT"
-echo "Done."
-sleep 1
-echo "Creating video stream and including audio..."
-sleep 1
-ffmpeg -f rawvideo -pix_fmt rgb24 -s 1920x1080 -i "$RAW_INPUT" -i "$AUDIO_OUTPUT" -c:v libx264 -c:a aac -b:a 192k "$FINAL_OUTPUT"
-echo "Done."
-sleep 1
-echo "Removing old files..."
-sleep 1
-rm -vf "$2.flac"
+if [ -e "$AUDIO_OUTPUT" ] && [ -e "$FINAL_OUTPUT" ]; then
+	rm "$AUDIO_OUTPUT" "$FINAL_OUTPUT"
+fi
+
+# Convert the file to video and audio
+
+echo -e "$PREFIX Creating audio stream..."
+ffmpeg -v quiet -stats -f u8 -ar 44100 -i "$RAW_INPUT" -c:a flac "$AUDIO_OUTPUT"
+echo -e "$PREFIX Done."
+echo -e "$PREFIX Creating video stream and including audio..."
+ffmpeg -v quiet -stats -f rawvideo -pix_fmt rgb24 -s 32x32 -i "$RAW_INPUT" -i "$AUDIO_OUTPUT" -c:v libx264 -c:a aac -b:a 192k "$FINAL_OUTPUT"
+echo -e "$PREFIX Done."
+echo -e "$PREFIX Upscaling to 640x480..."
+ffmpeg -v quiet -stats -i "$FINAL_OUTPUT" -s 640x480 "$UPSCALED"
+echo -e "$PREFIX Done."
+echo -e "$PREFIX Removing old files..."
+rm -vf "$AUDIO_OUTPUT" "$FINAL_OUTPUT" >/dev/null 2>&1
