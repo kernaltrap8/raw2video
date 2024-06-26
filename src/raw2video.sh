@@ -5,7 +5,7 @@
 # This is free software, and you are welcome to redistribute it
 # under certain conditions
 
-VERSION="1.2"
+VERSION="1.2a"
 
 # Argument checking
 
@@ -66,3 +66,5 @@ ffmpeg -v quiet -stats -i "$FINAL_OUTPUT" -s 640x480 "$UPSCALED"
 echo -e "$PREFIX Done."
 echo -e "$PREFIX Removing old files..."
 rm -vf "$AUDIO_OUTPUT" "$FINAL_OUTPUT" >/dev/null 2>&1
+mv "$UPSCALED" "$FINAL_OUTPUT" >/dev/null 2>&1
+echo -e "$PREFIX Done."
